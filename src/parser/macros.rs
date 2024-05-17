@@ -2,7 +2,7 @@
 macro_rules! filter {
    () => {FilterExpression::Atom(op!,FilterSign::new(""),op!())};
    ( $left:expr, $s:literal, $right:expr) => {
-      FilterExpression::Atom($left,FilterSign::new($s),$right)
+      FilterExpression::Atom($left,FilterSign::new($s, &$right),$right)
    };
    ( $left:expr,||, $right:expr) => {FilterExpression::Or(Box::new($left),Box::new($right)) };
    ( $left:expr,&&, $right:expr) => {FilterExpression::And(Box::new($left),Box::new($right)) };

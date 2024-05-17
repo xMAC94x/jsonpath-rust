@@ -93,19 +93,17 @@ pub fn any_of(left: Vec<&Value>, right: Vec<&Value>) -> bool {
 }
 
 /// ensure that the element on the left sides mathes the regex on the right side
-pub fn regex(left: Vec<&Value>, right: Vec<&Value>) -> bool {
+pub fn regex(left: Vec<&Value>, right: Vec<&Value>, reg: &Option<Regex>) -> bool {
     if left.is_empty() || right.is_empty() {
         return false;
     }
 
-    match right.first() {
-        Some(Value::String(str)) => {
-            if let Ok(regex) = Regex::new(str) {
-                for el in left.iter() {
-                    if let Some(v) = el.as_str() {
-                        if regex.is_match(v) {
-                            return true;
-                        }
+    match reg {
+        Some(reg) => {
+            for el in left.iter() {
+                if let Some(v) = el.as_str() {
+                    if reg.is_match(v) {
+                        return true;
                     }
                 }
             }
@@ -171,6 +169,7 @@ pub fn eq(left: Vec<&Value>, right: Vec<&Value>) -> bool {
 #[cfg(test)]
 mod tests {
     use crate::path::json::{any_of, eq, less, regex, size, sub_set_of};
+    use regex::Regex;
     use serde_json::{json, Value};
 
     #[test]
@@ -243,8 +242,16 @@ mod tests {
         let left3 = json!("a#11");
         let left4 = json!("#a11");
 
-        assert!(regex(vec![&left1, &left2, &left3, &left4], vec![&right]));
-        assert!(!regex(vec![&left1, &left3, &left4], vec![&right]))
+        assert!(regex(
+            vec![&left1, &left2, &left3, &left4],
+            vec![&right],
+            &Regex::new(right.as_str().unwrap()).ok(),
+        ));
+        assert!(!regex(
+            vec![&left1, &left3, &left4],
+            vec![&right],
+            &Regex::new(right.as_str().unwrap()).ok(),
+        ))
     }
 
     #[test]

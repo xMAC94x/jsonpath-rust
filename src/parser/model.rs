@@ -98,7 +98,7 @@ impl Operand {
 }
 
 /// The operators for filtering functions
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone)]
 pub enum FilterSign {
     Equal,
     Unequal,
@@ -106,7 +106,7 @@ pub enum FilterSign {
     Greater,
     LeOrEq,
     GrOrEq,
-    Regex,
+    Regex(Option<regex::Regex>),
     In,
     Nin,
     Size,
@@ -116,8 +116,30 @@ pub enum FilterSign {
     Exists,
 }
 
+impl PartialEq for FilterSign {
+    fn eq(&self, other: &Self) -> bool {
+        match (self, other) {
+            (FilterSign::Equal, FilterSign::Equal) => true,
+            (FilterSign::Unequal, FilterSign::Unequal) => true,
+            (FilterSign::Less, FilterSign::Less) => true,
+            (FilterSign::Greater, FilterSign::Greater) => true,
+            (FilterSign::LeOrEq, FilterSign::LeOrEq) => true,
+            (FilterSign::GrOrEq, FilterSign::GrOrEq) => true,
+            (FilterSign::Regex(_), FilterSign::Regex(_)) => true,
+            (FilterSign::In, FilterSign::In) => true,
+            (FilterSign::Nin, FilterSign::Nin) => true,
+            (FilterSign::Size, FilterSign::Size) => true,
+            (FilterSign::NoneOf, FilterSign::NoneOf) => true,
+            (FilterSign::AnyOf, FilterSign::AnyOf) => true,
+            (FilterSign::SubSetOf, FilterSign::SubSetOf) => true,
+            (FilterSign::Exists, FilterSign::Exists) => true,
+            (_, _) => false,
+        }
+    }
+}
+
 impl FilterSign {
-    pub fn new(key: &str) -> Self {
+    pub fn new(key: &str, op: &Operand) -> Self {
         match key {
             "==" => FilterSign::Equal,
             "!=" => FilterSign::Unequal,
@@ -125,7 +147,10 @@ impl FilterSign {
             ">" => FilterSign::Greater,
             "<=" => FilterSign::LeOrEq,
             ">=" => FilterSign::GrOrEq,
-            "~=" => FilterSign::Regex,
+            "~=" => FilterSign::Regex(match op {
+                Operand::Static(Value::String(reg)) => regex::Regex::new(reg).ok(),
+                _ => None,
+            }),
             "in" => FilterSign::In,
             "nin" => FilterSign::Nin,
             "size" => FilterSign::Size,

@@ -205,9 +205,10 @@ fn parse_logic_atom(mut pairs: Pairs<Rule>) -> Result<FilterExpression, JsonPath
                 if pairs.peek().is_none() {
                     Ok(FilterExpression::exists(left))
                 } else {
-                    let sign: FilterSign = FilterSign::new(pairs.next().expect("unreachable in arithmetic: should have a value as pairs.peek() was Some(_)").as_str());
-                    let right: Operand =
-                        parse_atom(pairs.next().expect("unreachable in arithemetic: should have a right side operand"))?;
+                    let sign = pairs.next().expect("unreachable in arithmetic: should have a value as pairs.peek() was Some(_)").as_str();
+                    let right = pairs.next().expect("unreachable in arithemetic: should have a right side operand");
+                    let right: Operand = parse_atom(right)?;
+                    let sign: FilterSign = FilterSign::new(sign, &right);
                     Ok(FilterExpression::Atom(left, sign, right))
                 }
             }

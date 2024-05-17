@@ -265,9 +265,10 @@ impl<'a> FilterPath<'a> {
             FilterSign::GrOrEq => {
                 FilterPath::compound(&FilterSign::Greater, &FilterSign::Equal, left, right)
             }
-            FilterSign::Regex => regex(
+            FilterSign::Regex(reg) => regex(
                 JsonPathValue::vec_as_data(left),
                 JsonPathValue::vec_as_data(right),
+                reg,
             ),
             FilterSign::In => inside(
                 JsonPathValue::vec_as_data(left),
@@ -582,8 +583,8 @@ mod tests {
         let chain = chain!(path!($), path!("key"), index);
         let path_inst = json_path_instance(&chain, &json);
         let expected_res = jp_v![
-            &exp4;"$.['key'][0]", 
-            &exp3;"$.['key'][2]", 
+            &exp4;"$.['key'][0]",
+            &exp3;"$.['key'][2]",
             &exp4;"$.['key'][4]"];
         assert_eq!(
             path_inst.find(JsonPathValue::from_root(&json)),
